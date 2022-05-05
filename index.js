@@ -1,40 +1,28 @@
-import fetch from "node-fetch"
-import cheerio from "cheerio"
-import fs from 'fs'
+const puppeteer = require("puppeteer");
+const fs = require("fs");
+const queries = ["My Name is", 'Hello', 'Dog', 'Apple'];
+const translations = []
 
-const getRawData = (URL) => {
-  return fetch(URL)
-    .then((response) => response.text())
-    .then((data) => {
-      return data;
-    });
-};
+async function scrape() {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  for (let i = 0; i < queries.length; i++) {
+    let query = encodeURI(queries[i]);
 
-const words = ['apple', 'chair', 'guitar', 'watermelon', 'umbrella', 'candy', 'fish']
-const translation = []
+    await page.goto(`https://translate.google.ca/?sl=en&tl=zh-TW&text=${query}&op=translate`);
+    await page.waitForSelector(".Q4iAWc");
 
-const getData = async () => {
-  for (let i = 0; i < words.length; i++) {
-    const URL = "https://chinese.yabla.com/chinese-english-pinyin-dictionary.php?define=" + words[i];
-    const data = await getRawData(URL);
-    const $ = cheerio.load(data);
+    let english = await page.$eval(".D5aOJc.Hapztf", (el) => el.textContent);
+    let mandarin = await page.$eval(".dePhmb .kO6q6e", (el) => el.textContent);
+    let characters = await page.$eval(".Q4iAWc", (el) => el.textContent);
 
-    const eng = $("input.form-control")[0].attribs.value
-    const cn = $("span.pinyin")[0].children[0].data
-
-    let characters = []
-    let children = $("span.word")[0].children
-    for (let j = 0; j < children.length; j++) {
-      if (children[j].next && children[j].next.attribs && children[j].next.attribs.href) {
-        characters.push($("span.word")[0].children[j].next.attribs.href.split('=')[1])
-      }
-    }
-
-    translation.push({ english: eng, mandarin: cn, characters: characters.join('') })
+    translations.push({ english, mandarin, characters })
   }
+  await browser.close();
 
-  console.log(translation);
-  fs.writeFileSync('data.js', JSON.stringify(translation));
-};
+  console.log(translations);
 
-getData();
+  fs.writeFileSync('data.js', JSON.stringify(translations));
+}
+
+scrape();

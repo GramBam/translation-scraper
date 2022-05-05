@@ -1,18 +1,11 @@
 {
-  "dependencies": {
-    "cheerio": "^1.0.0-rc.10",
-    "node-fetch": "^3.2.4",
-    "pretty": "^2.0.0",
-    "puppeteer": "^13.7.0"
-  },
   "name": "translate-scraper",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "",
   "license": "ISC",
   "description": "",
-  "type": "module"
+  "dependencies": {
+    "puppeteer": "^13.7.0"
+  }
 }
